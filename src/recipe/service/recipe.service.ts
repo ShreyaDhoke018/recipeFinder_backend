@@ -14,7 +14,7 @@ const RECIPES_PER_PAGE = 6;
 @Injectable()
 export class RecipeService {
   private readonly logger = new Logger(RecipeService.name);
-  constructor(private readonly recipeRepository: RecipeRepository) {}
+  constructor(private readonly recipeRepository: RecipeRepository) { }
 
   // ── Veg detection ─────────────────────────────────────────────────
   private isVegetarian(title: string, ingredients: string[]): boolean {
@@ -78,18 +78,18 @@ export class RecipeService {
     const searchTerms = uniqueIngredients.map(i => encodeURIComponent(i + ' recipe'));
 
     const siteConfigs = [
-      { name: 'BBC Good Food',   parser: 'bbcgoodfood',   urlFn: (q: string) => `https://www.bbcgoodfood.com/search?q=${q}` },
-      { name: 'Minimalist Baker', parser: 'generic',       urlFn: (q: string) => `https://minimalistbaker.com/?s=${q}` },
-      { name: 'Love & Lemons',   parser: 'generic',       urlFn: (q: string) => `https://www.loveandlemons.com/?s=${q}` },
-      { name: 'Food.com',        parser: 'foodcom',       urlFn: (q: string) => `https://www.food.com/search/${q}` },
-      { name: 'Delish',          parser: 'delish',        urlFn: (q: string) => `https://www.delish.com/search/?q=${q}` },
-      { name: 'AllRecipes',      parser: 'allrecipes',    urlFn: (q: string) => `https://www.allrecipes.com/search?q=${q}` },
-      { name: 'Simply Recipes',  parser: 'simplyrecipes', urlFn: (q: string) => `https://www.simplyrecipes.com/search/?q=${q}` },
-      { name: 'Epicurious',      parser: 'epicurious',    urlFn: (q: string) => `https://www.epicurious.com/search/${q}?content=recipe` },
-      { name: 'Serious Eats',    parser: 'seriouseats',   urlFn: (q: string) => `https://www.seriouseats.com/search?q=${q}` },
-      { name: 'Tasty',           parser: 'tasty',         urlFn: (q: string) => `https://tasty.co/search?q=${q}` },
-      { name: 'Yummly',          parser: 'yummly',        urlFn: (q: string) => `https://www.yummly.com/recipes?q=${q}` },
-      { name: 'Cookie & Kate',   parser: 'generic',       urlFn: (q: string) => `https://cookieandkate.com/?s=${q}` },
+      { name: 'BBC Good Food', parser: 'bbcgoodfood', urlFn: (q: string) => `https://www.bbcgoodfood.com/search?q=${q}` },
+      { name: 'Minimalist Baker', parser: 'generic', urlFn: (q: string) => `https://minimalistbaker.com/?s=${q}` },
+      { name: 'Love & Lemons', parser: 'generic', urlFn: (q: string) => `https://www.loveandlemons.com/?s=${q}` },
+      { name: 'Food.com', parser: 'foodcom', urlFn: (q: string) => `https://www.food.com/search/${q}` },
+      { name: 'Delish', parser: 'delish', urlFn: (q: string) => `https://www.delish.com/search/?q=${q}` },
+      { name: 'AllRecipes', parser: 'allrecipes', urlFn: (q: string) => `https://www.allrecipes.com/search?q=${q}` },
+      { name: 'Simply Recipes', parser: 'simplyrecipes', urlFn: (q: string) => `https://www.simplyrecipes.com/search/?q=${q}` },
+      { name: 'Epicurious', parser: 'epicurious', urlFn: (q: string) => `https://www.epicurious.com/search/${q}?content=recipe` },
+      { name: 'Serious Eats', parser: 'seriouseats', urlFn: (q: string) => `https://www.seriouseats.com/search?q=${q}` },
+      { name: 'Tasty', parser: 'tasty', urlFn: (q: string) => `https://tasty.co/search?q=${q}` },
+      { name: 'Yummly', parser: 'yummly', urlFn: (q: string) => `https://www.yummly.com/recipes?q=${q}` },
+      { name: 'Cookie & Kate', parser: 'generic', urlFn: (q: string) => `https://cookieandkate.com/?s=${q}` },
     ];
 
     // Create one job per (site × ingredient)
@@ -133,7 +133,7 @@ export class RecipeService {
   // =================================================================
   // PER-SITE PARSERS
   // =================================================================
-  private parseSite($: cheerio.CheerioAPI, parser: string, sourceName: string, ingredientNames: string[], siteIdx: number): IRecipe[] {
+  private parseSite($: cheerio.Root, parser: string, sourceName: string, ingredientNames: string[], siteIdx: number): IRecipe[] {
     const recipes: IRecipe[] = [];
     const MAX = 10; // max per site
 
@@ -150,6 +150,7 @@ export class RecipeService {
       isVegetarian: this.isVegetarian(title, ingredientNames),
       source: sourceName,
     });
+
 
     if (parser === 'allrecipes') {
       $('a[href*="/recipe/"]').each((_, el) => {
@@ -310,7 +311,7 @@ export class RecipeService {
 
     return true;
   }
-  private fi($el: cheerio.Cheerio<any>): string {
+  private fi($el: cheerio.Cheerio): string {
     return $el.find('img').attr('src') || $el.find('img').attr('data-src')
       || $el.find('img').attr('data-lazy-src') || $el.find('img').attr('data-original') || '';
   }
@@ -379,15 +380,15 @@ export class RecipeService {
   private getSmartImage(title: string, cuisine: string, idx: number): string {
     const t = `${title} ${cuisine}`.toLowerCase();
     const banks: Record<string, string[]> = {
-      pasta: ['https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600','https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600'],
-      curry: ['https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600','https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600'],
-      soup:  ['https://images.unsplash.com/photo-1547592180-85f173990554?w=600','https://images.unsplash.com/photo-1586417789929-6ec61e1dd7bc?w=600'],
-      rice:  ['https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600','https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600'],
-      salad: ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600','https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600'],
-      egg:   ['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600','https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600'],
+      pasta: ['https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600', 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600'],
+      curry: ['https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600', 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600'],
+      soup: ['https://images.unsplash.com/photo-1547592180-85f173990554?w=600', 'https://images.unsplash.com/photo-1586417789929-6ec61e1dd7bc?w=600'],
+      rice: ['https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600', 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600'],
+      salad: ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600'],
+      egg: ['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600', 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600'],
     };
     for (const [key, imgs] of Object.entries(banks)) if (t.includes(key)) return imgs[idx % imgs.length];
-    const g = ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600','https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600','https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600','https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600'];
+    const g = ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600', 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600'];
     return g[Math.abs(idx) % g.length];
   }
 }
